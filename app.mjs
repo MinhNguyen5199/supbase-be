@@ -20,6 +20,9 @@ import { handler as getInvoicesHandler } from './Lambda/GetInvoices.mjs'; // <--
 dotenv.config();
 const app = express();
 
+// --- CONFIGURATION ---
+const PORT = process.env.PORT || 4000;
+
 // CORS for all routes
 app.use(cors({
   origin: '*',
@@ -37,26 +40,18 @@ app.use(express.json());
 const adaptRequest = (handler) => async (req, res) => {
   const event = {
     requestContext: {
-      authorizer: req.user ? {
-        uid: req.user.id,
-        email: req.user.email,
-        displayName: req.user.user_metadata?.full_name,
-      } : null,
+      authorizer: req.user ? { uid: req.user.id, email: req.user.email } : null,
     },
     body: req.body,
     headers: req.headers,
   };
-
   try {
     const result = await handler(event, {});
-    // Set headers if the handler provides them
-    if (result.headers) {
-        res.set(result.headers);
-    }
+    if (result.headers) { res.set(result.headers); }
     res.status(result.statusCode).send(result.body);
   } catch (error) {
     console.error("Handler Error:", error);
-    res.status(500).send({ message: "An internal server error occurred in the handler." });
+    res.status(500).send({ message: "An internal server error occurred." });
   }
 };
 
@@ -69,7 +64,6 @@ app.post('/upgrade-subscription', supabaseAuthMiddleware, adaptRequest(upgradeSu
 app.post('/cancel-subscription', supabaseAuthMiddleware, adaptRequest(cancelSubscriptionHandler));
 app.post('/get-invoices', supabaseAuthMiddleware, adaptRequest(getInvoicesHandler));
 
-const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`✅ Express backend running at http://localhost:${PORT}`);
 });
