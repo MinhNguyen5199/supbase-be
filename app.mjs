@@ -16,6 +16,13 @@ import { handler as upgradeSubscriptionHandler } from './Lambda/UpgradeSubscript
 import { handler as cancelSubscriptionHandler } from './Lambda/CancelSubscription.mjs'; // Import new handler
 import { handler as getInvoicesHandler } from './Lambda/GetInvoices.mjs'; // <-- 1. IMPORT THE NEW HANDLER
 
+// --- for books
+
+import { handler as createBookHandler } from './Books/CreateBook.mjs';
+import { handler as getBookWithSummaryHandler } from './Books/GetBookWithSummary.mjs';
+import { handler as createUpdateSummaryHandler } from './Books/CreateUpdateSummary.mjs'; // NEW: Import the new handler
+
+
 
 dotenv.config();
 const app = express();
@@ -63,6 +70,44 @@ app.post('/create-portal-session', supabaseAuthMiddleware, adaptRequest(createPo
 app.post('/upgrade-subscription', supabaseAuthMiddleware, adaptRequest(upgradeSubscriptionHandler));
 app.post('/cancel-subscription', supabaseAuthMiddleware, adaptRequest(cancelSubscriptionHandler));
 app.post('/get-invoices', supabaseAuthMiddleware, adaptRequest(getInvoicesHandler));
+
+// Book Management Routes
+app.post('/admin/books', supabaseAuthMiddleware, adaptRequest(createBookHandler)); // Admin-only route for creating books
+app.post('/books/details', supabaseAuthMiddleware, adaptRequest(getBookWithSummaryHandler)); // Route to get book details with summary
+
+// NEW: Summary Management Route (Admin only)
+app.post('/admin/summaries', supabaseAuthMiddleware, adaptRequest(createUpdateSummaryHandler));
+
+// NEW (Placeholder for AdminSummaryEditor to get book list):
+// You'll need an endpoint to list books, e.g., a simple GET:
+app.get('/books/list-simple', supabaseAuthMiddleware, adaptRequest(async (event, context) => {
+  const { createClient } = await import('@supabase/supabase-js');
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+  const { data: booksData, error } = await supabase
+    .from('books')
+    .select(`
+      book_id,
+      title,
+      authors(name),
+      genres(name)
+    `)
+    .order('title', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching simple book list:', error);
+    return { statusCode: 500, body: JSON.stringify({ message: error.message || 'Failed to fetch book list.' }) };
+  }
+
+  // Flatten the author and genre arrays as expected by the frontend
+  const formattedBooks = booksData.map(book => ({
+    ...book,
+    authors: book.authors ? book.authors.map(a => a.name) : [],
+    genres: book.genres ? book.genres.map(g => g.name) : [],
+  }));
+
+  return { statusCode: 200, body: JSON.stringify({ data: formattedBooks }) };
+}));
 
 app.listen(PORT, () => {
   console.log(`✅ Express backend running at http://localhost:${PORT}`);

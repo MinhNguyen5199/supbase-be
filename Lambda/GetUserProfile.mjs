@@ -19,7 +19,7 @@ const { data: profile, error } = await supabase
   subscriptions!left(*, status, cancel_at_period_end, expires_at)
 `)
 .eq('id', user.uid)
-.in('subscriptions.status', ['active', 'trialing'])
+.in('subscriptions.status', ['active', 'trialing', 'canceled'])
 .order('created_at', { foreignTable: 'subscriptions', ascending: false })
 .limit(1, { foreignTable: 'subscriptions' })
 .maybeSingle();
