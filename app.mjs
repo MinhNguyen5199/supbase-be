@@ -22,6 +22,15 @@ import { handler as createBookHandler } from './Books/CreateBook.mjs';
 import { handler as getBookWithSummaryHandler } from './Books/GetBookWithSummary.mjs';
 import { handler as createUpdateSummaryHandler } from './Books/CreateUpdateSummary.mjs'; // NEW: Import the new handler
 
+// --- Import your new review handlers ---
+import { handler as createReviewHandler } from './Reviews/CreateReview.mjs';
+import { handler as getReviewsHandler } from './Reviews/GetReviews.mjs';
+import { handler as updateReviewHandler } from './Reviews/UpdateReview.mjs';
+import { handler as deleteReviewHandler } from './Reviews/DeleteReview.mjs';
+
+// Import the new audio summary handler
+import { handler as generateAudioSummaryHandler } from './Summaries/GenerateAudioSummary.mjs';
+import { handler as getAudioSummaryHandler } from './Summaries/GetAudioSummary.mjs';
 
 
 dotenv.config();
@@ -62,6 +71,25 @@ const adaptRequest = (handler) => async (req, res) => {
   }
 };
 
+const adaptRequestWithParams = (handler) => async (req, res) => {
+  const event = {
+    requestContext: {
+      authorizer: req.user ? { uid: req.user.id, email: req.user.email } : null,
+    },
+    body: req.body,
+    headers: req.headers,
+    pathParameters: req.params // Pass path parameters
+  };
+  try {
+    const result = await handler(event, {});
+    if (result.headers) { res.set(result.headers); }
+    res.status(result.statusCode).send(result.body);
+  } catch (error) {
+    console.error("Handler Error:", error);
+    res.status(500).send({ message: "An internal server error occurred." });
+  }
+};
+
 // --- API Routes ---
 // All protected routes use the `supabaseAuthMiddleware` first.
 app.get('/get-user-profile', supabaseAuthMiddleware, adaptRequest(getUserProfileHandler));
@@ -77,6 +105,17 @@ app.post('/books/details', supabaseAuthMiddleware, adaptRequest(getBookWithSumma
 
 // NEW: Summary Management Route (Admin only)
 app.post('/admin/summaries', supabaseAuthMiddleware, adaptRequest(createUpdateSummaryHandler));
+
+// Review Management Routes
+app.post('/reviews', supabaseAuthMiddleware, adaptRequest(createReviewHandler));
+app.get('/books/:book_id/reviews', adaptRequestWithParams(getReviewsHandler));
+app.put('/reviews/:review_id', supabaseAuthMiddleware, adaptRequestWithParams(updateReviewHandler));
+app.delete('/reviews/:review_id', supabaseAuthMiddleware, adaptRequestWithParams(deleteReviewHandler));
+
+// --- AI Summary Generation Routes ---
+// This is the new route you will add
+app.post('/summaries/:summary_id/audio', supabaseAuthMiddleware, adaptRequestWithParams(generateAudioSummaryHandler));
+app.get('/summaries/:summary_id/audio', supabaseAuthMiddleware, adaptRequestWithParams(getAudioSummaryHandler));
 
 // NEW (Placeholder for AdminSummaryEditor to get book list):
 // You'll need an endpoint to list books, e.g., a simple GET:
