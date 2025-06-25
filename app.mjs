@@ -32,6 +32,10 @@ import { handler as deleteReviewHandler } from './Reviews/DeleteReview.mjs';
 import { handler as generateAudioSummaryHandler } from './Summaries/GenerateAudioSummary.mjs';
 import { handler as getAudioSummaryHandler } from './Summaries/GetAudioSummary.mjs';
 
+// Import the new video summary handler
+import {handler as generateVideoSummaryHandler} from './Summaries/GenerateVideoSummary.mjs';
+import {handler as getVideoSummaryHandler} from './Summaries/GetVideoSummary.mjs';
+
 
 dotenv.config();
 const app = express();
@@ -116,6 +120,10 @@ app.delete('/reviews/:review_id', supabaseAuthMiddleware, adaptRequestWithParams
 // This is the new route you will add
 app.post('/summaries/:summary_id/audio', supabaseAuthMiddleware, adaptRequestWithParams(generateAudioSummaryHandler));
 app.get('/summaries/:summary_id/audio', supabaseAuthMiddleware, adaptRequestWithParams(getAudioSummaryHandler));
+
+// Video Summary Generation Routes
+app.post('/summaries/:summary_id/video', supabaseAuthMiddleware, adaptRequestWithParams(generateVideoSummaryHandler));
+app.get('/video-summaries/:video_summary_id/status', supabaseAuthMiddleware, adaptRequestWithParams(getVideoSummaryHandler));
 
 // NEW (Placeholder for AdminSummaryEditor to get book list):
 // You'll need an endpoint to list books, e.g., a simple GET:
