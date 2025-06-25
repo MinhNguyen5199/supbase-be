@@ -32,13 +32,12 @@ export const handler = async (event) => {
       .eq("summary_id", summary_id)
       .eq("user_id", user.uid)
       .single();
+      console.log("Existing Video Data:", existingVideo);
 
-    if (existingVideo && existingVideo.status === "completed") {
-      return { statusCode: 200, body: JSON.stringify(existingVideo) };
-    }
-    if (existingVideo && existingVideo.status === "processing") {
-      return { statusCode: 202, body: JSON.stringify(existingVideo) };
-    }
+      if (existingVideo && (existingVideo.status === "active" || existingVideo.status === "processing")) {
+        return { statusCode: 200, body: JSON.stringify(existingVideo) };
+      }
+    
 
     const { data: userData } = await supabase.from('users').select('username').eq('id', user.uid).single();
     const { data: summaryData } = await supabase.from('summaries').select('books(title)').eq('summary_id', summary_id).single();
@@ -47,12 +46,8 @@ export const handler = async (event) => {
       throw new Error('Could not fetch user or book details to generate script.');
     }
 
-    const userName = userData.username || 'there';
-    const bookTitle = summaryData.books.title;
-    console.log("username:", userName);
-    console.log("booktitle", bookTitle);
     // 3. Call the Tavus API with persona_id and replica_id.
-    const script = `Hi ${userName}! 📚 Ready to explore ${bookTitle} in just minutes? Let’s dive in together — and I’ll be here to guide you.`;
+    const script = `Hi ${userData.username || 'there'}! 📚 Ready to explore ${summaryData.books.title} in just minutes? Let’s dive in together — and I’ll be here to guide you.`;
     
     const tavusResponse = await axios.post('https://tavusapi.com/v2/conversations', 
       {
@@ -61,7 +56,6 @@ export const handler = async (event) => {
         persona_id: "p88964a7",
         replica_id: "rfb51183fe",
         custom_greeting: script,
-        conversation_name: ` A Meeting with ${userName}`,
         properties:{
           enable_closed_captions: true,
         }
@@ -83,13 +77,13 @@ export const handler = async (event) => {
     // 4. Create a new record in your database. This logic remains the same.
     const { data: newVideoRecord, error: insertError } = await supabase
       .from('video_summaries')
-      .insert({
+      .upsert({
         summary_id: summary_id,
         user_id: user.uid,
-        video_file_url: tavusResponse.data.conversation_url,
+        video_file_url: null,
         tavus_video_id: tavusVideoId,
-        status: tavusResponse.data.status
-      })
+        status: 'processing',
+      }, { onConflict: 'summary_id,user_id' })
       .select()
       .single();
 
