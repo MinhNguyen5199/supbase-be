@@ -200,7 +200,8 @@ app.get('/auth/reddit/initiate', supabaseAuthMiddleware, (req, res) => {
 
   const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REDDIT_CLIENT_ID}&response_type=code&state=${state}&redirect_uri=${process.env.REDDIT_REDIRECT_URI}&duration=temporary&scope=identity`;
 
-  res.redirect(authUrl);
+// Send the URL back as JSON instead of redirecting
+res.status(200).json({ url: authUrl });
 });
 
 app.get('/auth/reddit/callback', redditOAuthHandler);
