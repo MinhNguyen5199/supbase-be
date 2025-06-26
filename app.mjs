@@ -3,6 +3,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import jwt from 'jsonwebtoken';
 
 // New Supabase middleware
 import { supabaseAuthMiddleware } from './Lambda/supabaseAuthMiddleware.mjs';
@@ -39,6 +40,14 @@ import { handler as createVideoConversationHandler } from './video/GenerateVideo
 import { handler as endVideoConversationHandler } from './video/EndVideoConversation.mjs';
 import { handler as deleteVideoConversationHandler } from './video/DeleteVideoConversation.mjs';
 import { handler as getVideoStatusHandler } from './video/GetVideoSummary.mjs';
+
+// --- (NEW) Import Quest and Game Handlers ---
+import { handler as linkRedditProfileHandler } from './Gremlins/LinkRedditProfile.mjs';
+import { handler as adoptGremlinHandler } from './Gremlins/AdoptGremlin.mjs';
+import { handler as mintAchievementHandler } from './Gremlins/MintAchievement.mjs';
+import { handler as getQuestsHandler } from './Quests/GetQuests.mjs';
+import { handler as completeQuestHandler } from './Quests/CompleteQuest.mjs';
+import { handler as redditOAuthHandler } from './Auth/RedditOAuth.mjs';
 
 dotenv.config();
 const app = express();
@@ -135,6 +144,21 @@ app.post('/videos/:summary_id/end', supabaseAuthMiddleware, adaptRequestWithPara
 app.delete('/videos/:summary_id', supabaseAuthMiddleware, adaptRequestWithParams(deleteVideoConversationHandler));
 app.get('/videos/:summary_id/status', supabaseAuthMiddleware, adaptRequestWithParams(getVideoStatusHandler));
 
+// --- (NEW) Subreddit Gremlins & Quest Board Routes ---
+// Should be called after Reddit OAuth to link accounts
+app.post('/reddit/link', supabaseAuthMiddleware, adaptRequest(linkRedditProfileHandler));
+
+// Called once by a user to initialize their game profile
+app.post('/gremlins/adopt', supabaseAuthMiddleware, adaptRequest(adoptGremlinHandler));
+
+// An internal route to mint an NFT, likely called by another service or handler
+app.post('/gremlins/mint-achievement', adaptRequest(mintAchievementHandler)); // Consider adding admin/service-level auth
+
+// Public-facing quest routes for the frontend
+app.get('/quests', supabaseAuthMiddleware, adaptRequest(getQuestsHandler));
+app.post('/quests/complete', supabaseAuthMiddleware, adaptRequest(completeQuestHandler));
+
+
 // NEW (Placeholder for AdminSummaryEditor to get book list):
 // You'll need an endpoint to list books, e.g., a simple GET:
 app.get('/books/list-simple', supabaseAuthMiddleware, adaptRequest(async (event, context) => {
@@ -165,6 +189,21 @@ app.get('/books/list-simple', supabaseAuthMiddleware, adaptRequest(async (event,
 
   return { statusCode: 200, body: JSON.stringify({ data: formattedBooks }) };
 }));
+
+app.get('/auth/reddit/initiate', (req, res) => {
+  console.log(req)
+  const payload = {
+      supabase_user_id: req.user.id,
+  };
+  // Create a short-lived token to use as the state
+  const state = jwt.sign(payload, process.env.INTERNAL_API_SECRET, { expiresIn: '5m' });
+
+  const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REDDIT_CLIENT_ID}&response_type=code&state=${state}&redirect_uri=${process.env.REDDIT_REDIRECT_URI}&duration=temporary&scope=identity`;
+
+  res.redirect(authUrl);
+});
+
+app.get('/auth/reddit/callback', redditOAuthHandler);
 
 app.listen(PORT, () => {
   console.log(`✅ Express backend running at http://localhost:${PORT}`);
