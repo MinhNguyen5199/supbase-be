@@ -190,7 +190,7 @@ app.get('/books/list-simple', supabaseAuthMiddleware, adaptRequest(async (event,
   return { statusCode: 200, body: JSON.stringify({ data: formattedBooks }) };
 }));
 
-app.get('/auth/reddit/initiate', (req, res) => {
+app.get('/auth/reddit/initiate', supabaseAuthMiddleware, (req, res) => {
   console.log(req)
   const payload = {
       supabase_user_id: req.user.id,
