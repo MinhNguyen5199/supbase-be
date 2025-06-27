@@ -117,7 +117,7 @@ app.post('/get-invoices', supabaseAuthMiddleware, adaptRequest(getInvoicesHandle
 
 // Book Management Routes
 app.post('/admin/books', supabaseAuthMiddleware, adaptRequest(createBookHandler)); // Admin-only route for creating books
-app.post('/books/details', supabaseAuthMiddleware, adaptRequest(getBookWithSummaryHandler)); // Route to get book details with summary
+app.post('/books/details', adaptRequest(getBookWithSummaryHandler)); // Route to get book details with summary
 
 // NEW: Summary Management Route (Admin only)
 app.post('/admin/summaries', supabaseAuthMiddleware, adaptRequest(createUpdateSummaryHandler));
@@ -161,7 +161,7 @@ app.post('/quests/complete', supabaseAuthMiddleware, adaptRequest(completeQuestH
 
 // NEW (Placeholder for AdminSummaryEditor to get book list):
 // You'll need an endpoint to list books, e.g., a simple GET:
-app.get('/books/list-simple', supabaseAuthMiddleware, adaptRequest(async (event, context) => {
+app.get('/books/list-simple', adaptRequest(async (event, context) => {
   const { createClient } = await import('@supabase/supabase-js');
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -171,7 +171,9 @@ app.get('/books/list-simple', supabaseAuthMiddleware, adaptRequest(async (event,
       book_id,
       title,
       authors(name),
-      genres(name)
+      genres(name),
+      description,
+      cover_image_url
     `)
     .order('title', { ascending: true });
 

@@ -3,10 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 export const handler = async (event) => {
-    const user = event.requestContext.authorizer;
-    if (!user?.uid) {
-        return { statusCode: 401, body: JSON.stringify({ message: 'User not authenticated.' }) };
-    }
+    // const user = event.requestContext.authorizer;
+    // if (!user?.uid) {
+    //     return { statusCode: 401, body: JSON.stringify({ message: 'User not authenticated.' }) };
+    // }
+    console.log(event);
 
     const { bookId } = event.body; // Assuming bookId is passed in the request body
 

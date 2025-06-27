@@ -12,11 +12,20 @@ async function checkUserAccess(userId, summaryId) {
     .select("cloned_from_user_id")
     .eq("summary_id", summaryId)
     .single();
-    console.log('123')
-    console.log(data)
 
   if (error || !data) return false;
   return data.cloned_from_user_id === userId;
+}
+
+ export async function getUserTier(userId) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("current_tier")
+    .eq("id", userId)
+    .single();
+
+  if (error || !data) return null;
+  return data.current_tier;
 }
 
 
@@ -28,6 +37,13 @@ export const handler = async (event) => {
     return { statusCode: 401, body: JSON.stringify({ message: "User not authenticated." }) };
   }
 
+  const userTier = await getUserTier(user.uid);
+  console.log('User Tier:', userTier);
+  if (!userTier.includes('pro') && !userTier.includes('vip')) {
+    console.log('Access denied: User is not Pro or VIP');
+    return { statusCode: 403, body: JSON.stringify({ message: "Access restricted to Pro or VIP users only." }) };
+  }
+
   const { summary_id } = event.pathParameters || {};
   if (!summary_id) {
     return { statusCode: 400, body: JSON.stringify({ message: "Summary ID is required." }) };
@@ -35,10 +51,10 @@ export const handler = async (event) => {
   console.log(user.uid, summary_id);
   // 2. Authorization: Check if this specific user has permission to access this summary.
   // We'll keep this check for clarity and security.
-  const hasAccess = await checkUserAccess(user.uid, summary_id);
-  if (!hasAccess) {
-    return { statusCode: 403, body: JSON.stringify({ message: "Access denied." }) };
-  }
+  // const hasAccess = await checkUserAccess(user.uid, summary_id);
+  // if (!hasAccess) {
+  //   return { statusCode: 403, body: JSON.stringify({ message: "Access denied." }) };
+  // }
 
   try {
     // 3. Fetch all audio metadata (from your first function)

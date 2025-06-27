@@ -23,7 +23,7 @@ export const supabaseAuthMiddleware = async (req, res, next) => {
   if (!token) {
     return res.status(401).json({ message: 'Unauthorized: No token provided' });
   }
-  
+
   const { data: { user }, error } = await supabase.auth.getUser(token);
 
   if (error || !user) {

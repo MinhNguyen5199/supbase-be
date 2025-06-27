@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
 import { diffChars } from "diff";
+import { getUserTier } from "./GetAudioSummary.mjs";
 
 /**
 
@@ -84,12 +85,19 @@ function stripHtmlToString(html) {
 export const handler = async (event) => {
   const user = event.requestContext?.authorizer;
 
+
   if (!user?.uid)
     return {
       statusCode: 401,
       body: JSON.stringify({ message: "Unauthorized" }),
     };
 
+    const userTier = await getUserTier(user.uid);
+    console.log('User Tier:', userTier);
+    if (!userTier.includes('pro') && !userTier.includes('vip')) {
+      console.log('Access denied: User is not Pro or VIP');
+      return { statusCode: 403, body: JSON.stringify({ message: "Access restricted to Pro or VIP users only." }) };
+    }
   const { summary_id } = event.pathParameters || {};
 
   if (!summary_id)

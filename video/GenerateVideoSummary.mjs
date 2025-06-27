@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import axios from 'axios';
+import { getUserTier } from "../Summaries/GetAudioSummary.mjs";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -23,6 +24,13 @@ export const handler = async (event) => {
       statusCode: 400,
       body: JSON.stringify({ message: "Missing summary_id" }),
     };
+  }
+  const userTier = await getUserTier(user.uid);
+  console.log("User Tier:", userTier);
+
+  if (!userTier.includes('vip')) {
+    console.log('Access denied: User is not VIP');
+    return { statusCode: 403, body: JSON.stringify({ message: "Access restricted to VIP users only." }) };
   }
 
   try {
