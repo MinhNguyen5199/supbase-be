@@ -52,7 +52,7 @@ export const handler = async (event) => {
         }
 
         const allowedUpdates = userData.is_student ? studentProducts : regularProducts;
-        const returnUrl = 'http://localhost:3000/dashboard/upgrade';
+        const returnUrl = `${process.env.FRONTEND_URL}/dashboard/upgrade`;
 
         const config = await stripe.billingPortal.configurations.create({
             business_profile: { headline: 'BookWise Subscription Management' },

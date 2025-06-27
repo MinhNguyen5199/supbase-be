@@ -79,12 +79,11 @@ export const handler = async (event) => {
                 line_items: [{ price: config.priceId, quantity: 1 }],
             };
         }
-        
         const session = await stripe.checkout.sessions.create({
             customer: customerId,
             mode: 'subscription',
-            success_url: `http://localhost:3000/payment-success`,
-            cancel_url: `http://localhost:3000/dashboard/upgrade`,
+            success_url: `${process.env.FRONTEND_URL}/payment-success`,
+            cancel_url: `${process.env.FRONTEND_URL}/dashboard/upgrade`,
             ...sessionConfig,
             subscription_data: {
                 ...sessionConfig.subscription_data,

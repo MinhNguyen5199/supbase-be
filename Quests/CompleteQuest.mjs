@@ -75,7 +75,7 @@ export const handler = async (event) => {
           `User ${user.uid} unlocked badge ${quest.unlocks_badge_id}! Triggering minting...`
         );
     
-        axios.post(`http://localhost:${process.env.PORT || 4000}/gremlins/mint-achievement`, 
+        axios.post(`${process.env.API_URL}/gremlins/mint-achievement`, 
             {
                 // The body of the request
                 userId: user.uid,
