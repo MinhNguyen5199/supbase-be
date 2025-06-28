@@ -1,7 +1,7 @@
 import algosdk from 'algosdk';
 import dotenv from 'dotenv';
 
-dotenv.config();
+// dotenv.config();
 
 const ALGOD_TOKEN = process.env.ALGOD_API_TOKEN;
 const ALGOD_SERVER = process.env.ALGOD_SERVER_URL;

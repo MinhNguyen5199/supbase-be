@@ -12,7 +12,8 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 export const handler = async (req, res) => {
     // Reddit sends back a temporary 'code' and the 'state' JWT we sent.
     const { code, state } = req.query;
-    console.log('minh')
+    console.log('Callback received with code:', code);
+  console.log('Callback received with state:', state);
 
     if (!code || !state) {
         return res.status(400).send('Error: Invalid request from Reddit. Code or state is missing.');

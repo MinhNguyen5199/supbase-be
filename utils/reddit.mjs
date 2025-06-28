@@ -1,7 +1,7 @@
 import snoowrap from 'snoowrap';
 import dotenv from 'dotenv';
 
-dotenv.config();
+// dotenv.config();
 
 // These credentials should be for a specific bot account, e.g., "BookWiseQuestBot"
 const r = new snoowrap({

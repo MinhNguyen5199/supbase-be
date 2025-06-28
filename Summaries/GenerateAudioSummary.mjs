@@ -2,7 +2,6 @@ import { createClient } from "@supabase/supabase-js";
 
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
-import { diffChars } from "diff";
 import { getUserTier } from "./GetAudioSummary.mjs";
 
 /**

@@ -193,16 +193,16 @@ app.get('/books/list-simple', adaptRequest(async (event, context) => {
 }));
 
 app.get('/auth/reddit/initiate', supabaseAuthMiddleware, (req, res) => {
-  console.log(req)
+  console.log('Initiate Reddit OAuth for Supabase user:', req.user?.id);
   const payload = {
       supabase_user_id: req.user.id,
   };
   // Create a short-lived token to use as the state
   const state = jwt.sign(payload, process.env.INTERNAL_API_SECRET, { expiresIn: '5m' });
 
-  const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REDDIT_CLIENT_ID}&response_type=code&state=${state}&redirect_uri=${process.env.REDDIT_REDIRECT_URI}&duration=temporary&scope=identity`;
-
-// Send the URL back as JSON instead of redirecting
+  const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REDDIT_CLIENT_ID}&response_type=code&state=${state}&redirect_uri=${process.env.REDDIT_REDIRECT_URI}&duration=temporary&scope=identity&prompt=consent`;
+  console.log('Generated Reddit OAuth URL:', authUrl);
+  // Send the URL back as JSON instead of redirecting
 res.status(200).json({ url: authUrl });
 });
 

@@ -10,18 +10,14 @@
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.4.0",
-    "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.45.0",
     "algosdk": "^3.3.1",
     "axios": "^1.10.0",
     "cors": "^2.8.5",
-    "diff": "^8.0.2",
     "dotenv": "^16.4.5",
-    "elevenlabs": "^1.59.0",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "snoowrap": "^1.23.0",
-    "strip-html": "^1.0.2",
     "stripe": "^16.5.0"
   },
   "devDependencies": {
