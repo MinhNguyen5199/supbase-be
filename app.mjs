@@ -48,18 +48,20 @@ import { handler as mintAchievementHandler } from './Gremlins/MintAchievement.mj
 import { handler as getQuestsHandler } from './Quests/GetQuests.mjs';
 import { handler as completeQuestHandler } from './Quests/CompleteQuest.mjs';
 import { handler as redditOAuthHandler } from './Auth/RedditOAuth.mjs';
+import serverless from 'serverless-http';
 
 dotenv.config();
 const app = express();
 
 // --- CONFIGURATION ---
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4001;
 
 // CORS for all routes
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  credentials: true
 }));
 
 // --- STEP 1: WEBHOOK ROUTE (needs raw body) ---
@@ -208,6 +210,8 @@ res.status(200).json({ url: authUrl });
 
 app.get('/auth/reddit/callback', redditOAuthHandler);
 
-app.listen(PORT, () => {
-  console.log(`✅ Express backend running at http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`✅ Express backend running at http://localhost:${PORT}`);
+// });
+
+export const handler = serverless(app);
