@@ -6,3 +6,4 @@ node_modules
 
 #serverless folder
 .serverless/
+.serverless/
